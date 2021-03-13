@@ -18,37 +18,34 @@ while true
     currentTime = datetime('now');
     dt = milliseconds(currentTime - lastTime); % Time since last loop in milliseconds
     dtStart = milliseconds(currentTime - startTime); % Time since start of program milliseconds
-    
+
     pressureTransudcerVoltage = readVoltage(m_arduino, pressureTransducer);
     pressure = ((pressureTransudcerVoltage - zeroPressureVoltage) / (maxPressureVoltage - zeroPressureVoltage)) * maxPressure;
     fprintf('%.2f psi - %.2f V [%.2f ms]\n', pressure, pressureTransudcerVoltage, dt);
-    
-    % Puff
-    if (dtStart < 500)
-        writeDigitalPin(m_arduino, silenoidPin, 1);
-        fprintf('oxygen\n');
-    elseif (dtStart < 2500)
+
+
+    % Oxygen
+    if (dtStart > 500 && dtStart < 2000)
         writeDigitalPin(m_arduino, silenoidPin, 0);
-        fprintf('no oxygen\n');
+         % Turn on valve
+    elseif (dtStart > 2000 && dtStart < 2500)
+         % Turn off valve
+        writeDigitalPin(m_arduino, silenoidPin, 1);
+    elseif (dtStart > 3000 && dtStart < 11000)
+         % Turn on valve
+        writeDigitalPin(m_arduino, silenoidPin, 0);
+    elseif (dtStart > 11001)
+        % Turn off valve
+        writeDigitalPin(m_arduino, silenoidPin, 1);
     end
-    
-    % Starter
-    if (dtStart < 5000)
-        writeDigitalPin(m_arduino, starterPin, 1);
-        fprintf('starter\n');
-    else
+
+    % Ignition
+    if (dtStart > 2000)
         writeDigitalPin(m_arduino, starterPin, 0);
-        fprintf('no starter\n');
+    elseif(dtStart > 3000)
+        writeDigitalPin(m_arduino, starterPin, 1);
     end
-    
-    % Main O2 Supply
-    if (dtStart > 2500 && dtStart < 12500)
-        writeDigitalPin(m_arduino, silenoidPin, 1);
-        fprintf('oxygen\n');
-    elseif (dtStart > 2500)
-        writeDigitalPin(m_arduino, silenoidPin, 0);
-        fprintf('no oxygen\n');
-    end
-    
+
+
     lastTime = currentTime;
 end
